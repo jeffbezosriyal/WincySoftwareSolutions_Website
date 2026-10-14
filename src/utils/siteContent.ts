@@ -50,7 +50,7 @@ export interface Service {
 export const services: Service[] = [
   {
     icon: ClipboardCheck,
-    title: 'Legacy Application Assessment',
+    title: 'Legacy Application Assessment / Documentation',
     description: 'Analyze existing systems to surface risks, dependencies and high-value modernization opportunities.',
   },
   {
@@ -60,12 +60,12 @@ export const services: Service[] = [
   },
   {
     icon: Cloud,
-    title: 'Cloud Migration',
+    title: 'Cloud Migration / Modernization',
     description: 'Migrate applications to AWS, Azure or Google Cloud with minimal disruption to the business.',
   },
   {
     icon: RefreshCcw,
-    title: 'Application Reengineering',
+    title: 'Application Reengineering / Rearchitecting',
     description: 'Refactor monolithic applications into scalable, maintainable, and testable systems.',
   },
   {
