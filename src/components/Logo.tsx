@@ -11,7 +11,7 @@ function Logo({ className = '' }: LogoProps) {
       aria-label="Wincy Software Solutions home"
       className={`inline-flex items-center ${className}`}
     >
-      <img src={logoLight} alt="Wincy Software Solutions" className="h-9 w-auto sm:h-16 lg:h-24" />
+      <img src={logoLight} alt="Wincy Software Solutions" className="h-12 w-auto sm:h-16 xl:h-20" />
     </a>
   )
 }

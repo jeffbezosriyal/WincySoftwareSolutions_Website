@@ -6,17 +6,31 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#FF7A00',
-          50: '#FFF3E8',
-          100: '#FFE5CC',
-          200: '#FFCC99',
-          300: '#FFB266',
-          400: '#FF9933',
-          500: '#FF7A00',
-          600: '#E66E00',
-          700: '#CC5F00',
-          800: '#994700',
-          900: '#663000',
+          DEFAULT: '#D61F7F',
+          50: '#FDF0F6',
+          100: '#FBDCEB',
+          200: '#F7B8D6',
+          300: '#F08FBE',
+          400: '#E65AA0',
+          500: '#D61F7F',
+          600: '#B8176C',
+          700: '#961258',
+          800: '#6E0D41',
+          900: '#480829',
+        },
+        secondary: {
+        DEFAULT: '#E8891A',
+        },
+        surface: {
+        DEFAULT: '#FFFFFF',
+        light: '#FAF5F8',
+        },
+        ink: {
+        DEFAULT: '#1A1A1A',
+        gray: '#666666',
+        },
+        accent: {
+        DEFAULT: '#FBDCEB',
         },
         secondary: {
           DEFAULT: '#FFA940',
@@ -42,12 +56,12 @@ export default {
       },
       boxShadow: {
         soft: '0 4px 20px rgba(26, 26, 26, 0.06)',
-        softLg: '0 10px 40px rgba(255, 122, 0, 0.12)',
+        softLg: '0 10px 40px rgba(214, 31, 127, 0.12)',
         glass: '0 8px 32px rgba(31, 38, 135, 0.08)',
       },
       backgroundImage: {
-        'orange-gradient': 'linear-gradient(135deg, #FF7A00 0%, #FFA940 100%)',
-        'orange-gradient-soft': 'linear-gradient(135deg, #FFF3E8 0%, #FFE5CC 100%)',
+        'orange-gradient': 'linear-gradient(135deg, #D61F7F 0%, #E8891A 100%)',
+        'orange-gradient-soft': 'linear-gradient(135deg, #FDEEF5 0%, #FFE8CF 100%)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',

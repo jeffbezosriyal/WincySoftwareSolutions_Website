@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Mail,
   MapPin,
@@ -32,23 +33,32 @@ interface FormState {
 
 const initialState: FormState = { name: '', email: '', phone: '', message: '', _gotcha: '' }
 
-// Formspree keeps the recipient inbox private — the ID below is a public
-// form endpoint, not a secret, but it's still read from an env var so each
-// deployment (staging/prod) can point at its own form without a code change.
-// See README "Contact Form" section for setup + why this approach is secure.
-const FORM_ENDPOINT = import.meta.env.VITE_FORMSPREE_ID
-  ? `https://formspree.io/f/${import.meta.env.VITE_FORMSPREE_ID}`
-  : null
+// Google Apps Script web app URL, read from .env.local (VITE_SHEETS_URL).
+const FORM_ENDPOINT: string | undefined = import.meta.env.VITE_SHEETS_URL
 
-type Status = 'idle' | 'submitting' | 'success' | 'error'
+// Basic format check: something@something.tld (no spaces, commas or extra @).
+const EMAIL_PATTERN = /^[^\s@,;<>]+@[^\s@,;<>]+\.[A-Za-z]{2,}$/
+
+type Status = 'idle' | 'submitting' | 'success' | 'error' | 'invalid' | 'badEmail' | 'mailFailed'
 
 function Contact() {
   const [form, setForm] = useState<FormState>(initialState)
   const [status, setStatus] = useState<Status>('idle')
 
-  const handleChange = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }))
-  }
+  const handleChange =
+    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    }
+
+  // Close the success popup with the Escape key.
+  useEffect(() => {
+    if (status !== 'success') return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setStatus('idle')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [status])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -56,7 +66,18 @@ function Contact() {
     // Honeypot: real users never fill this hidden field, bots often do.
     if (form._gotcha) return
 
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setStatus('invalid')
+      return
+    }
+
+    if (!EMAIL_PATTERN.test(form.email.trim())) {
+      setStatus('badEmail')
+      return
+    }
+
     if (!FORM_ENDPOINT) {
+      console.error('VITE_SHEETS_URL is not set. Add it to .env.local and restart the dev server.')
       setStatus('error')
       return
     }
@@ -64,9 +85,11 @@ function Contact() {
     setStatus('submitting')
 
     try {
+      // text/plain keeps this a "simple" request, so the browser doesn't
+      // send a CORS preflight that Apps Script can't answer.
       const response = await fetch(FORM_ENDPOINT, {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           name: form.name,
           email: form.email,
@@ -75,11 +98,18 @@ function Contact() {
         }),
       })
 
-      if (!response.ok) throw new Error('Submission failed')
+      const result = await response.json()
+      if (result.result !== 'success') throw new Error('Script returned an error')
 
-      setStatus('success')
-      setForm(initialState)
-    } catch {
+      if (result.mailSent === true) {
+        setStatus('success')
+        setForm(initialState)
+      } else {
+        // Saved in the sheet, but the acknowledgement mail could not be sent.
+        setStatus('mailFailed')
+      }
+    } catch (err) {
+      console.error('Form submit failed:', err)
       setStatus('error')
     }
   }
@@ -191,6 +221,7 @@ function Contact() {
                     id="name"
                     name="name"
                     type="text"
+                    autoComplete="name"
                     required
                     value={form.name}
                     onChange={handleChange('name')}
@@ -206,6 +237,7 @@ function Contact() {
                     id="email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={form.email}
                     onChange={handleChange('email')}
@@ -223,6 +255,7 @@ function Contact() {
                   id="phone"
                   name="phone"
                   type="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={handleChange('phone')}
                   className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary-100"
@@ -237,6 +270,7 @@ function Contact() {
                 <textarea
                   id="message"
                   name="message"
+                  autoComplete="off"
                   required
                   rows={5}
                   value={form.message}
@@ -271,16 +305,32 @@ function Contact() {
                 )}
               </button>
 
-              {status === 'success' && (
-                <motion.p
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  role="status"
-                  className="flex items-center gap-2 text-sm font-medium text-primary-700"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Thank you — our modernization specialists will be in touch shortly.
-                </motion.p>
+              {status === 'invalid' && (
+                <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                  <AlertCircle className="h-4 w-4" />
+                  Please fill in your name, email and message.
+                </p>
+              )}
+
+              {status === 'badEmail' && (
+                <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                  <AlertCircle className="h-4 w-4" />
+                  Please enter a valid email address.
+                </p>
+              )}
+
+              {status === 'mailFailed' && (
+                <p role="alert" className="flex items-start gap-2 text-sm font-medium text-red-600">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <span>
+                    The mail could not be sent to this address. Kindly enter a valid email id and
+                    try again, or write to us at{' '}
+                    <a href={`mailto:${contactInfo.email}`} className="underline">
+                      {contactInfo.email}
+                    </a>
+                    .
+                  </span>
+                </p>
               )}
 
               {status === 'error' && (
@@ -302,6 +352,51 @@ function Contact() {
           </motion.div>
         </div>
       </div>
+
+      {/* Success popup, drawn into document.body so it centers on the whole screen */}
+      {createPortal(
+        <AnimatePresence>
+          {status === 'success' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setStatus('idle')}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-5"
+            >
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="success-title"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-sm rounded-card bg-white p-8 text-center shadow-softLg"
+              >
+                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary">
+                  <CheckCircle2 className="h-9 w-9" />
+                </span>
+                <h3 id="success-title" className="mt-5 text-2xl font-bold text-ink">
+                  Request Sent Successfully
+                </h3>
+                <p className="mt-2 text-ink-gray">
+                  Thank you — a confirmation has been sent to your email, and our modernization
+                  specialists will be in touch shortly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setStatus('idle')}
+                  className="btn-primary mt-7 w-full"
+                >
+                  Close
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </section>
   )
 }

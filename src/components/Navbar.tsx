@@ -49,6 +49,22 @@ function Navbar() {
     }
   }, [mobileOpen])
 
+    // Publish the real nav height as a CSS variable so anchor links
+  // (#services, #projects, ...) always stop exactly below the header.
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty('--header-h', `${nav.offsetHeight}px`)
+    }
+
+    updateHeaderHeight()
+    const observer = new ResizeObserver(updateHeaderHeight)
+    observer.observe(nav)
+    return () => observer.disconnect()
+  }, [])
+
   // Close an open desktop dropdown on outside click or Escape.
   useEffect(() => {
     if (!openDropdown) return
@@ -84,99 +100,105 @@ function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/85 shadow-soft backdrop-blur-xl' : 'bg-white/40 backdrop-blur-md'
-      }`}
+  className={`sticky top-0 z-50 transition-all duration-300 ${
+    scrolled ? 'bg-white/85 shadow-soft backdrop-blur-xl' : 'bg-white/40 backdrop-blur-md'
+  }`}
+>
+  <nav
+    ref={navRef}
+    className="mx-auto flex w-full max-w-[96rem] items-center justify-between gap-4 px-3 py-3 sm:px-5 sm:py-4 xl:grid xl:grid-cols-[1fr_auto_1fr] xl:px-8"
+    aria-label="Primary"
+  >
+    {/* Left: logo */}
+    <Logo className="justify-self-start" />
+
+    {/* Center: links */}
+    <ul className="hidden items-center justify-center gap-1 xl:flex">
+      {navLinks.map((link) =>
+        link.children ? (
+          <li key={link.label} className="relative">
+            <button
+              type="button"
+              className={`group flex items-center gap-1 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium ${
+                openDropdown === link.label ? 'text-primary' : 'text-ink-gray'
+              }`}
+              aria-haspopup="true"
+              aria-expanded={openDropdown === link.label}
+              onClick={() => setOpenDropdown((prev) => (prev === link.label ? null : link.label))}
+            >
+              <span className="group-hover:bg-orange-gradient group-hover:bg-clip-text group-hover:text-transparent">
+                {link.label}
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-200 group-hover:text-primary ${
+                  openDropdown === link.label ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            <AnimatePresence>
+              {openDropdown === link.label && (
+                <motion.ul
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-1/2 top-full mt-1 w-48 -translate-x-1/2 rounded-2xl border border-black/5 bg-white py-2 shadow-softLg"
+                >
+                  {link.children.map((child) => (
+                    <li key={child.label}>
+                      <a
+                        href={child.href}
+                        onClick={() => setOpenDropdown(null)}
+                        className="group block px-4 py-2 text-sm font-medium text-ink-gray transition-colors hover:bg-primary-50"
+                      >
+                        <span className="group-hover:bg-orange-gradient group-hover:bg-clip-text group-hover:text-transparent">
+                          {child.label}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
+            </AnimatePresence>
+          </li>
+        ) : (
+          <li key={link.href}>
+            <a
+              href={link.href}
+              className={`group relative whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium ${
+                activeHref === link.href ? 'text-primary' : 'text-ink-gray'
+              }`}
+              aria-current={activeHref === link.href ? 'page' : undefined}
+            >
+              <span className="group-hover:bg-orange-gradient group-hover:bg-clip-text group-hover:text-transparent">
+                {link.label}
+              </span>
+            </a>
+          </li>
+        ),
+      )}
+    </ul>
+
+    {/* Right: button (desktop) */}
+    <div className="hidden justify-self-end xl:block">
+      <a href="#contact" className="btn-primary whitespace-nowrap">
+        Get Started
+      </a>
+    </div>
+
+    {/* Right: hamburger (mobile/tablet) */}
+    <button
+      type="button"
+      className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-primary-50 xl:hidden"
+      aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+      aria-expanded={mobileOpen}
+      aria-controls="mobile-menu"
+      onClick={() => setMobileOpen((prev) => !prev)}
     >
-      <nav
-        ref={navRef}
-        className="flex h-20 sm:h-24 lg:h-28 items-center justify-between gap-x-4 lg:gap-x-8 pl-2 sm:pl-3 lg:pl-4 pr-5 sm:pr-8 lg:pr-[calc(2.5rem+max(0px,(100vw-1280px)/2))]"
-        aria-label="Primary"
-      >
-        <Logo className="-ml-2 sm:-ml-3 lg:-ml-4" />
-
-        <ul className="hidden items-center gap-1 lg:flex">
-          {navLinks.map((link) =>
-            link.children ? (
-              <li key={link.label} className="relative">
-                <button
-                  type="button"
-                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    openDropdown === link.label ? 'text-primary' : 'text-ink-gray hover:text-primary'
-                  }`}
-                  aria-haspopup="true"
-                  aria-expanded={openDropdown === link.label}
-                  onClick={() => setOpenDropdown((prev) => (prev === link.label ? null : link.label))}
-                  onMouseEnter={() => setOpenDropdown(link.label)}
-                >
-                  {link.label}
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      openDropdown === link.label ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-
-                <AnimatePresence>
-                  {openDropdown === link.label && (
-                    <motion.ul
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.15 }}
-                      onMouseLeave={() => setOpenDropdown(null)}
-                      className="absolute left-0 top-full mt-1 w-48 rounded-2xl border border-black/5 bg-white py-2 shadow-softLg"
-                    >
-                      {link.children.map((child) => (
-                        <li key={child.label}>
-                          <a
-                            href={child.href}
-                            onClick={() => setOpenDropdown(null)}
-                            className="block px-4 py-2 text-sm font-medium text-ink-gray transition-colors hover:bg-primary-50 hover:text-primary"
-                          >
-                            {child.label}
-                          </a>
-                        </li>
-                      ))}
-                    </motion.ul>
-                  )}
-                </AnimatePresence>
-              </li>
-            ) : (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  className={`relative rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    activeHref === link.href
-                      ? 'text-primary'
-                      : 'text-ink-gray hover:text-primary'
-                  }`}
-                  aria-current={activeHref === link.href ? 'page' : undefined}
-                >
-                  {link.label}
-                </a>
-              </li>
-            ),
-          )}
-        </ul>
-
-        <div className="hidden lg:block">
-          <a href="#contact" className="btn-primary">
-            Get Started
-          </a>
-        </div>
-
-        <button
-          type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-primary-50 lg:hidden"
-          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-menu"
-          onClick={() => setMobileOpen((prev) => !prev)}
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </nav>
+      {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+    </button>
+  </nav>
 
       <AnimatePresence>
         {mobileOpen && (
@@ -186,7 +208,7 @@ function Navbar() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden border-t border-black/5 bg-white lg:hidden"
+            className="overflow-hidden border-t border-black/5 bg-white xl:hidden"
           >
             <ul className="container-app flex flex-col gap-1 py-4">
               {navLinks.map((link) =>

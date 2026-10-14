@@ -12,8 +12,13 @@ import {
   Rocket,
   Wallet,
   Layers,
+  Code,
+  Database,
+  Server,
   type LucideIcon,
 } from 'lucide-react'
+
+import { techStack } from './techStackData'
 
 export interface NavLink {
   label: string
@@ -25,15 +30,10 @@ export const navLinks: NavLink[] = [
   { label: 'Home', href: '#home' },
   { label: 'Services', href: '#services' },
   { label: 'Projects', href: '#projects' },
-  {
+    {
     label: 'Tech Stack',
     href: '#',
-    children: [
-      { label: 'VB 6', href: '#' },
-      { label: 'Delphi', href: '#' },
-      { label: 'Power Builder', href: '#' },
-      { label: '.NET Framework', href: '#' },
-    ],
+    children: techStack.map((tech) => ({ label: tech.label, href: `#${tech.id}` })),
   },
   { label: 'About', href: '#about' },
   { label: 'Achievements', href: '#achievements' },

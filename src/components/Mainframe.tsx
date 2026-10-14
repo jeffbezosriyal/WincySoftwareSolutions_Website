@@ -11,7 +11,7 @@ interface RiskModule {
 const riskModules: RiskModule[] = [
   { name: 'Core Billing Engine', grade: 'D', status: 'Critical Risk', color: '#EF4444' },
   { name: 'Auth & Session Mgmt', grade: 'C', status: 'Needs Refactor', color: '#F59E0B' },
-  { name: 'Reporting Module', grade: 'B', status: 'In Progress', color: '#FF7A00' },
+  { name: 'Reporting Module', grade: 'B', status: 'In Progress', color: '#D61F7F' },
   { name: 'API Gateway', grade: 'A', status: 'Modernized', color: '#22C55E' },
 ]
 
@@ -66,14 +66,13 @@ function Mainframe() {
           </motion.span>
 
           <motion.h1
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            custom={1}
-            className="text-4xl font-bold leading-[1.1] sm:text-5xl lg:text-6xl"
-          >
-            Modernize Legacy Applications
-            <span className="text-gradient"> with AI-Powered Transformation</span>
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              custom={1}
+              className="text-gradient text-4xl font-bold leading-[1.1] sm:text-5xl lg:text-6xl"
+            >
+              Modernize Legacy Applications with AI-Powered Transformation
           </motion.h1>
 
           <motion.div

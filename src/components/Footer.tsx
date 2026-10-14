@@ -1,3 +1,4 @@
+import FooterLogo from './FooterLogo'
 import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Twitter } from 'lucide-react'
 import { contactInfo, navLinks, services, socialLinks } from '../utils/siteContent'
 
@@ -15,10 +16,14 @@ function Footer() {
     <footer className="bg-ink text-white/70">
       <div className="container-app grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-sm font-semibold text-white">
-            Wincy Software Solutions - Legacy App Modernization Company &gt;&gt; Powered by AI Agents
-          </p>
-          <p className="mt-3 text-sm leading-relaxed">
+  <div className="relative flex items-center gap-4 2xl:block">
+    <FooterLogo className="2xl:absolute 2xl:right-full 2xl:top-1/2 2xl:mr-5 2xl:-translate-y-1/2" />
+    <p className="text-sm font-semibold text-white">
+      Wincy Software Solutions - Legacy App Modernization Company &gt;&gt; Powered by AI Agents
+    </p>
+  </div>
+  <p className="mt-3 text-sm leading-relaxed">
+    ...
             Wincy Software Solutions&apos; suite of AI agents accelerates application modernization by
             approximately 50–70%. The agents assess and document legacy applications, recommend modern
             technology stacks, transform legacy code using generative AI, automatically generate test

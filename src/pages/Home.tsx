@@ -4,6 +4,7 @@ import Services from '../components/Services'
 import About from '../components/About'
 import Stats from '../components/Stats'
 import Projects from '../components/Projects'
+import TechStack from '../components/TechStack'
 import Testimonials from '../components/Testimonials'
 import WhyChooseUs from '../components/WhyChooseUs'
 import CTA from '../components/CTA'
@@ -18,6 +19,7 @@ function Home() {
       <About />
       <Stats />
       <Projects />
+      <TechStack />
       <Testimonials />
       <WhyChooseUs />
       <CTA />
