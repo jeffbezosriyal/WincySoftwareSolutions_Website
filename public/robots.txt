@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wincysoftwaresolutions.net/sitemap.xml
